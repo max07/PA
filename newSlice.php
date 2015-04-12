@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <body>
@@ -22,6 +21,7 @@ if($input!="")
     $visited=array();
     $init=array();
     $mFlag=0;
+    
     while ($line!=false)
     {
         if(strlen($line) > 1){
@@ -31,11 +31,8 @@ if($input!="")
         $line=getNextLine();
     }
     $totalLines = count($statements);
+    
     for($x = 0; $x < $totalLines; $x++) {
-        ////echo $x;
-        ////echo ": ";
-        ////echo $statements[$x];
-        ////echo "<br>";
         $visited[$x]=0;
         $marked[$x]=0;
     }
@@ -61,6 +58,9 @@ if($input!="")
     $newStr=substr($statements[$printStmt],$index,-2);
     $newStr .= ",";
     ////echo "Criteria : ";
+    
+    /******* PARSING CRITERIA **************/
+    
     $var=strtok($newStr, ",");
     while ($var!=false){
         ////echo $var." ";
@@ -68,8 +68,9 @@ if($input!="")
         array_push($init,$var);
         $var = getNextVar();
     }
-    ////echo "<br>";
-    //
+    
+    /************ DONE PARSING CRITERIA ***************/
+    
     $bFlag=0;
     $start;
     $tStart;
@@ -127,7 +128,6 @@ if($input!="")
     }
     if($qFlag==1)
     {
-        ////echo "here too";
         for($y = $tStart; $y <=$tEnd; $y++)
         {
             $startArr[$y]=$tStart;
@@ -148,11 +148,12 @@ if($input!="")
         $temp = "";
         $flag = 0;
         $len=strlen($statements[$x]);
-         
+         /******************************** PARSING LMAP AND RMAP ******************************/
+
 // for parsing start
         if(strncmp(trim($statements[$x]), "int", 3)==0)
         {
-            $newStr=substr($statements[$x],3,-2);
+            $newStr=substr($statements[$x],3,-1);
             $lMap[$x] = "_";
             //echo $newStr."<br>";
             $newStr .= ",";
@@ -204,7 +205,7 @@ if($input!="")
             }
             $index+=2;
             trim($statements[$x]);
-            $newStr=substr($statements[$x],$index,-2);
+            $newStr=substr($statements[$x],$index,-1);
             $temp = "";
             $newStr .= ",";
             $var=strtok($newStr, ",");
@@ -231,7 +232,7 @@ if($input!="")
         }
         else if(strncmp(trim($statements[$x]), "for", 3)==0)
         {
-            $newStr=substr($statements[$x],4,-2);
+            $newStr=substr($statements[$x],4,-1);
             $newStr=strtok($newStr, ";");
             $newStr = getNextVar2();
             $newStr .= ",";
@@ -266,7 +267,7 @@ if($input!="")
         else if(strncmp(trim($statements[$x]), "if", 2)==0)
         {
              
-            $newStr=substr($statements[$x],3,-2);
+            $newStr=substr($statements[$x],3,-1);
              
             $newStr .= ",";
             $temp= "";
@@ -302,7 +303,7 @@ if($input!="")
         else if(strncmp(trim($statements[$x]), "while", 5)==0)
         {
              
-            $newStr=substr($statements[$x],5,-2);
+            $newStr=substr($statements[$x],5,-1);
              
             $newStr .= ",";
             $temp= "";
@@ -376,7 +377,7 @@ if($input!="")
                 $lMap[$x] = "-";
                  
         }
-        // for parsing done
+        /*
         else if((($statements[$x][$len-3]=="+")&&($statements[$x][$len-4]=="+"))||(($statements[$x][$len-3]=="-")&&($statements[$x][$len-4]=="-")))
         {
             $newStr=substr($statements[$x],0,-4);
@@ -385,6 +386,7 @@ if($input!="")
             $lMap[$x] = $newStr;
              
         }
+        */
         else{
             $cFlag=0;
                 for($j = 0; $j < strlen($statements[$x]); $j++){
@@ -430,6 +432,10 @@ if($input!="")
                 }          
         }
     }
+    
+    
+    /******************* DONE GENERATING LMAP AND RMAP ****************************/
+
     /*for($i = 0; $i<count($lMap); $i++)
     {
         //echo " <br>#".$i." ";
@@ -441,7 +447,7 @@ if($input!="")
         }
             //}
          
-    }*/
+    }
     for($i = 0; $i<count($lMap); $i++)
     {
         //echo " <br>#".$i." ";
@@ -453,6 +459,8 @@ if($input!="")
              
          
     }
+    */
+    
     $dFlag=0;
     $fFlag=0;
     $itr=0;
@@ -1328,7 +1336,292 @@ function getNextVar()
 function getNextVar2()
 {
     return strtok(";");
-}  
+}
+
+function parser()
+{
+    $statements = array();
+    $criteria=array();
+    $startArr=array();
+    $endArr=array();
+    $slice = array();
+    $lMap=array();
+    $visited=array();
+    $init=array();
+    $mFlag=0;
+    
+         if(strncmp(trim($statements[$x]), "int", 3)==0)
+        {
+            $newStr=substr($statements[$x],3,-1);
+            $lMap[$x] = "_";
+            //echo $newStr."<br>";
+            $newStr .= ",";
+            $var=strtok($newStr, ",");
+            $temp = "";
+            while ($var!=false)
+            {
+                for($y = 0; $y < strlen($newStr); $y++){
+                    if(ctype_alpha($newStr[$y]))
+                    {
+                        $temp .=$newStr[$y];
+                    }
+                    else
+                    {
+                        if($temp!="")
+                        {
+                            $rmap[$x][] = $temp;
+                             
+                        }
+                        $temp="";
+                    }
+                }
+                $var = getNextVar();
+            }
+             
+        }
+        else if(strncmp(trim($statements[$x]), "printf", 6)==0){
+            if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";
+                    $lMap[$x] = "-";
+            }
+        }
+        else if(strncmp(trim($statements[$x]), "scanf", 5)==0){
+             
+            $count = 0;
+            $index = 0;
+             
+            for($y=0;$y<strlen($statements[$x]);$y++)
+            {              
+                if($statements[$x][$y]=='"')
+                {
+                    $count++;
+                }
+                if($count==2)
+                {
+                    $index = $y;
+                    break;
+                }
+            }
+            $index+=2;
+            trim($statements[$x]);
+            $newStr=substr($statements[$x],$index,-1);
+            $temp = "";
+            $newStr .= ",";
+            $var=strtok($newStr, ",");
+             
+            while ($var!=false){
+                for($y = 0; $y < strlen($newStr); $y++){
+                    if(ctype_alpha($newStr[$y]))
+                    {
+                        $temp .=$newStr[$y];
+                    }
+                    else
+                    {
+                        if($temp!="")
+                        {
+                            $rmap[$x][] = $temp;
+                            //$lMap[$x] =  $temp;
+                        }
+                        $temp="";
+                    }
+                }
+                $var = getNextVar();
+            }
+                $lMap[$x]= "_";
+        }
+        else if(strncmp(trim($statements[$x]), "for", 3)==0)
+        {
+            $newStr=substr($statements[$x],4,-1);
+            $newStr=strtok($newStr, ";");
+            $newStr = getNextVar2();
+            $newStr .= ",";
+            $temp= "";
+            for($y = 0; $y < strlen($newStr); $y++)
+            {
+                if(ctype_alpha($newStr[$y]))
+                {
+                    $temp .=$newStr[$y];
+                }
+                else
+                {
+                    if($temp!="")
+                    {
+                        $rmap[$x][] = $temp;
+                        $lmap[$x][] = $temp;
+                        $lMap[$x] = "+";
+                    }
+                     
+                    $temp="";
+                }
+                 
+             
+            }
+            if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";
+                    $lmap[$x][] = "-";
+                    $lMap[$x]="+";
+            }
+             
+        }
+        else if(strncmp(trim($statements[$x]), "if", 2)==0)
+        {
+             
+            $newStr=substr($statements[$x],3,-1);
+             
+            $newStr .= ",";
+            $temp= "";
+            for($y = 0; $y < strlen($newStr); $y++)
+            {
+                if(ctype_alpha($newStr[$y]))
+                {
+                    $temp .=$newStr[$y];
+                }
+                else
+                {
+                     
+                    if($temp!="")
+                    {
+                         
+                        $rmap[$x][] = $temp;
+                        $lmap[$x][] = $temp;
+                        $lMap[$x]= "+";
+                    }
+                     
+                    $temp="";
+                     
+                }
+                 
+             
+            }
+            if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";
+                    $lmap[$x][] = "-";
+                    $lMap[$x] = "+";
+            }
+        }
+        else if(strncmp(trim($statements[$x]), "while", 5)==0)
+        {
+             
+            $newStr=substr($statements[$x],5,-1);
+             
+            $newStr .= ",";
+            $temp= "";
+            for($y = 0; $y < strlen($newStr); $y++)
+            {
+                if(ctype_alpha($newStr[$y]))
+                {
+                    $temp .=$newStr[$y];
+                }
+                else
+                {
+                     
+                    if($temp!="")
+                    {
+                         
+                        $rmap[$x][] = $temp;
+                        $lmap[$x][] = $temp;
+                        $lMap[$x]="+";
+                    }
+                     
+                    $temp="";
+                     
+                }
+                 
+             
+            }
+            if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";
+                    $lmap[$x][] = "-";
+                    $lMap[$x] = "+";
+            }
+        }
+        else if(strncmp(trim($statements[$x]), "else", 4)==0)
+        {
+            $rmap[$x][] = "-";
+            $lMap[$x] = "+";
+        }
+        else if(strncmp(trim($statements[$x]), "}while", 6)==0)
+        {
+             
+            $newStr=substr($statements[$x],6,-2);
+            $newStr .= ",";
+            $temp= "";
+            for($y = 0; $y < strlen($newStr); $y++)
+            {
+                if(ctype_alpha($newStr[$y]))
+                {
+                    $temp .=$newStr[$y];
+                }
+                else
+                {
+                    if($temp!="")
+                    {
+                        $rmap[$x][] = $temp;
+                        $lmap[$x][] = $temp;
+                        $lMap[$x] = "+";
+                    }
+                    $temp="";
+                }
+                 
+            }
+            if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";
+                    $lmap[$x][] = "-";
+                    $lMap[$x] = "+";
+            }
+        }
+        else if(strstr($statements[$x],"do") || strstr($statements[$x],"{") || strstr($statements[$x],"}") ){
+                $lmap[$x][] = "-";
+                $rmap[$x][] = "-";
+                $lMap[$x] = "-";
+                 
+        }
+        else{
+            $cFlag=0;
+                for($j = 0; $j < strlen($statements[$x]); $j++){
+                      if($statements[$x][$j] == "+" || $statements[$x][$j] == "-" || $statements[$x][$j] == "*" || $statements[$x][$j] == "%" || $statements[$x][$j] == "/" || $statements[$x][$j] == "=" ){
+                        if($temp != ""){
+                            if($statements[$x][$j] == "=") {
+                                $lmap[$x][] = $temp;
+                                $lMap[$x] = $temp;
+                                $flag = 1;
+                            }
+                            else if( ($j+1 < strlen($statements[$x])) && $statements[$x][$j+1] == "="){
+                                 
+                                $lmap[$x][] = $temp;
+                                $lMap[$x] = $temp;
+                                $rmap[$x][] = $temp;
+                                $j++;
+                                $flag = 1;
+                            }
+                            else if($flag == 1){
+                                if($temp != "")
+                                    $rmap[$x][] = $temp;
+                            }
+                        }
+                        $temp = "";
+                    }
+                    else{
+                        if(ctype_alpha($statements[$x][$j]))
+                            $temp .= $statements[$x][$j];
+                    }
+                }
+                if(ctype_alpha($temp)){
+                    $rmap[$x][] = $temp;
+                }
+                if($flag == 0 && !empty($rmap[$x]) ){
+                    for($z = 0; $z < count($rmap[$x]); $z++)
+                    {
+                        $lmap[$x][] = $rmap[$x][$z];
+                        $lMap[$x] = $rmap[$x][$z];
+                    }
+                }
+                if(empty($rmap[$x])){
+                    $rmap[$x][] = "-";                 
+                }          
+        }
+    }
+}
 ?>
 </body>
 </html>
